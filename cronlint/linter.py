@@ -124,6 +124,13 @@ def _lint_special(stripped: str, line_no: int) -> list:
     return findings
 
 
+def _dom_dow_both_restricted(dom: str, dow: str) -> bool:
+    # Vixie cron decides by the first character: a field starting with '*'
+    # (including '*/2') counts as unrestricted and the two are ANDed. Only
+    # when neither starts with '*' does it fall back to OR.
+    return not dom.startswith("*") and not dow.startswith("*")
+
+
 def lint_line(line: str, line_no: int) -> list:
     """Lint a single crontab line, returning zero or more findings."""
     stripped = line.strip()
@@ -148,6 +155,13 @@ def lint_line(line: str, line_no: int) -> list:
     for spec, value in zip(FIELD_SPECS, parts[:5]):
         for message in validate_field(value, spec):
             findings.append(Finding(line_no, "error", f"{spec.name}: {message}"))
+
+    if not findings and _dom_dow_both_restricted(parts[2], parts[4]):
+        findings.append(Finding(
+            line_no, "warning",
+            f"day of month '{parts[2]}' and day of week '{parts[4]}' are both "
+            "restricted; cron runs the job when either matches, not both",
+        ))
     return findings
 
 

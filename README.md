@@ -15,6 +15,9 @@ the line where each mistake lives.
 - step values that are missing, non-numeric, or zero/negative (`*/0`)
 - unknown `@` shortcuts and `@daily`/`@reboot` lines missing a command
 - month and day-of-week names (`MON-FRI`, `JAN-DEC`)
+- a warning when both day of month and day of week are restricted
+  (`0 9 1 * MON` runs on the 1st and on every Monday, not on Mondays that
+  fall on the 1st)
 
 It skips comments, blank lines, and `NAME=value` environment assignments,
 the same way real crontabs do.
@@ -57,7 +60,6 @@ reads a file or prints anything.
 
 ## Status
 
-Early skeleton. Field validation works; it does not yet catch semantic
-oddities like a day-of-month and day-of-week both being restricted
-(which most cron implementations OR together in a way people don't
-expect), or flag schedules that will simply never fire (Feb 30th).
+Early. Field validation and the day-of-month/day-of-week warning work;
+it does not yet flag schedules that will simply never fire (Feb 30th).
+The exit code is non-zero only when there are errors, not warnings.

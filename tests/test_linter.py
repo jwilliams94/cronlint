@@ -157,6 +157,24 @@ class LintLineTests(unittest.TestCase):
             lint_line("30 8 * * MON-FRI /usr/local/bin/weekday-report.sh", 1), []
         )
 
+    def test_dom_and_dow_both_restricted_warns(self):
+        findings = lint_line("0 9 1 * MON /bin/true", 4)
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].line, 4)
+        self.assertEqual(findings[0].severity, "warning")
+        self.assertIn("either matches", findings[0].message)
+
+    def test_only_one_of_dom_or_dow_restricted_does_not_warn(self):
+        self.assertEqual(lint_line("0 9 1 * * /bin/true", 1), [])
+        self.assertEqual(lint_line("0 9 * * MON /bin/true", 1), [])
+
+    def test_star_step_counts_as_unrestricted(self):
+        self.assertEqual(lint_line("0 9 */2 * MON /bin/true", 1), [])
+
+    def test_dom_dow_warning_skipped_when_fields_have_errors(self):
+        findings = lint_line("0 9 32 * MON /bin/true", 1)
+        self.assertEqual([f.severity for f in findings], ["error"])
+
 
 if __name__ == "__main__":
     unittest.main()

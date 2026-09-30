@@ -18,7 +18,8 @@ def main(argv) -> int:
     for finding in findings:
         print(f"{path}:{finding.line}: {finding.severity}: {finding.message}")
 
-    return 1 if findings else 0
+    # Warnings alone don't fail the run.
+    return 1 if any(f.severity == "error" for f in findings) else 0
 
 
 if __name__ == "__main__":
